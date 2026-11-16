@@ -15,7 +15,7 @@ if ($ValidateOnly) { Write-Output 'Scheduled task configuration: PASS (no tasks 
 $AssistantUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 $AssistantPrincipal = New-ScheduledTaskPrincipal -UserId $AssistantUser -LogonType Interactive -RunLevel Limited
 $AssistantLogon = New-ScheduledTaskTrigger -AtLogOn -User $AssistantUser
-$AssistantEngine = New-ScheduledTaskAction -Execute $AssistantPython -Argument '-X utf8 -m pa watch' -WorkingDirectory $AssistantRoot
+$AssistantEngine = New-ScheduledTaskAction -Execute $AssistantPython -Argument '-X utf8 -m pa.engine' -WorkingDirectory $AssistantRoot
 $AssistantSync = New-ScheduledTaskAction -Execute $AssistantPython -Argument '-X utf8 -m pa run --full' -WorkingDirectory $AssistantRoot
 $AssistantEngineSettings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
     -ExecutionTimeLimit (New-TimeSpan -Seconds 0) -MultipleInstances IgnoreNew -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1)

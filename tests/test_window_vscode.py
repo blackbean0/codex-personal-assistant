@@ -2,6 +2,14 @@
 from pa import pipeline, server
 
 
+def test_duplicate_warning_only_for_the_later_live_viewer(monkeypatch):
+    monkeypatch.setattr(server.time, "time", lambda: 100)
+    monkeypatch.setattr(server, "VIEWERS", {"first": 99, "second": 100})
+    monkeypatch.setattr(server, "FIRST_SEEN", {"first": 90, "second": 95})
+    assert not server.is_duplicate("first")
+    assert server.is_duplicate("second")
+
+
 def test_vscode_mode_requests_tab_only_when_vscode_alive(monkeypatch):
     opened_app = []
     monkeypatch.setattr(pipeline, "dash_mode", lambda: "vscode")

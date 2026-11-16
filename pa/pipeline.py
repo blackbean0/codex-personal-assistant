@@ -80,6 +80,10 @@ def _run(full, force_plan, quick=False):
             if n:
                 steps.append(f"제출·수강 확인 → 완료 {n}")
         if full:
+            from pa import portal
+            imported = step("포털 시간표", portal.refresh)
+            if imported:
+                steps.append(f"시간표 {imported[0]}교시")
             n = step("Canvas", lambda: collect_canvas.sync(conn))
             if n is not None:
                 steps.append(f"Canvas {n}건")
@@ -97,6 +101,9 @@ def _run(full, force_plan, quick=False):
         need_deadlines = force_plan or step("마감 확인", lambda: deadlines.needed(conn))
         if need_plan or need_deadlines:
             service = step("Google", get_service)
+            if service and full:
+                from pa import sync_timetable
+                step("수업 시간표", lambda: sync_timetable.sync(service))
             if service and need_plan:
                 res = step("계획", lambda: plan.run(conn, service))
                 if res:

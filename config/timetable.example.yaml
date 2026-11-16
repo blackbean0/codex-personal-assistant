@@ -13,6 +13,10 @@ classes:
 # 온라인 수업 (Canvas 과목명과 같게, 시간 고정 없음 → 정기 할 일로 관리)
 online_classes: []
 
+# 포털에서 날짜별 시간표를 가져오면 class_dates가 생성된다.
+# class_dates가 있으면 classes의 매주 반복 대신 실제 날짜만 사용하며 휴강은 제외한다.
+# 가져오기: bin\pa.cmd portal-timetable --year 2026 --term 20 --apply
+
 # 학습 계획 설정
 planner:
   main_days: [mon, wed, fri, sat]   # 우선 배치 요일

@@ -43,8 +43,10 @@ def login():
     if not CREDENTIALS.exists():
         raise SystemExit(f"{CREDENTIALS} 가 없습니다. docs/google-calendar-setup.md 를 참고하세요.")
     flow = InstalledAppFlow.from_client_secrets_file(str(CREDENTIALS), SCOPES)
-    creds = flow.run_local_server(port=8080, open_browser=True, browser=osutil.browser_name(), timeout_seconds=600,
-                                  access_type="offline", prompt="consent")
+    print("열린 브라우저에서 본인 Google 계정을 선택하고 Calendar 접근을 허용하세요.", flush=True)
+    creds = flow.run_local_server(port=0, open_browser=True, browser=osutil.browser_name(), timeout_seconds=600,
+                                  access_type="offline", prompt="consent", authorization_prompt_message="",
+                                  success_message="Google Calendar 인증이 완료됐습니다. 이 창을 닫고 비서로 돌아가세요.")
     TOKEN.write_text(creds.to_json(), encoding="utf-8")
     print("✅ Google 로그인 저장됨")
 

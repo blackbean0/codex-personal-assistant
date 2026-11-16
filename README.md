@@ -20,6 +20,12 @@ bin\pa.cmd watch
 학교 연동은 현재 **제주대학교 Canvas·LearningX 전용**이다. 다른 학교면 먼저 연동 코드를 조정해야 한다.
 전체 절차는 [Windows 설치 안내](docs/LOCAL_SETUP_GUIDE.ko.md)를 따른다.
 
+학교 로그인 후 `bin\pa.cmd portal-timetable --year 2026 --term 20 --apply`로 본인 시간표를 가져올 수 있다.
+포털의 실제 날짜·시각을 사용하고 휴강은 제외하며 보강은 실제 날짜에 둔다. 시각이 없는 과목은 임의로 배치하지 않는다.
+Google Calendar 시간표 동기화도 이 날짜별 기록을 사용한다.
+가져온 시간표는 전체 동기화 때 포털에서 다시 조회한다. Google 인증이 준비되면 수업 캘린더도
+변경분을 반영하며, 취소된 미래 수업만 제거하고 과거 수업과 사용자가 만든 일정은 보존한다.
+
 ## 개인 설정
 
 설치 프로그램은 기존 설정과 자료를 보존한다. 다음 파일은 Git에서 제외한다.
@@ -64,8 +70,9 @@ bin\pa.cmd doctor --ai --browser           # 가상 자료로 실제 Codex 3회 
 AI 검증은 구독 사용량을 소비한다. 테스트는 실제 학교·Google 로그인과 실제 Codex 호출을 하지 않는다.
 테스트 실행기는 Windows 사용자와 제한된 실행 도구가 서로의 임시 폴더 권한을 공유하지 않도록 매번 새 임시 폴더를 사용한다.
 업데이트 후 `bin\setup.cmd`를 다시 실행하고 엔진을 재시작한다. DB 기록은 자동 이전한다.
-개발 검증: 테스트 102개 통과, Python 3.10 문법 검사, Windows 자동 시작 설정 검증,
+개발 검증: Python 3.10 문법 검사, Windows 자동 시작 설정 검증,
 실제 Codex를 통한 가상 공지·PDF·보고서 처리와 Chromium 대시보드 검증을 수행했다.
+Windows 백그라운드 엔진은 전용 감독 프로세스가 로그와 코드 재시작(종료 코드 75)을 처리한다.
 OneDrive 경로에서도 검증했으나 여러 PC가 같은 SQLite DB를 동시에 실행하지 않도록 한다.
 
 사용법은 [docs/usage.md](docs/usage.md), 현재 남은 설정은 [docs/TODO.md](docs/TODO.md),

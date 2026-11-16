@@ -240,6 +240,14 @@ def main():
     for s in (sys.stdout, sys.stderr):  # Windows 콘솔·파이프에서도 한글·이모지가 깨지지 않게
         if s and hasattr(s, "reconfigure") and (s.encoding or "").lower().replace("-", "") != "utf8":
             s.reconfigure(encoding="utf-8", errors="replace")
+    if len(sys.argv) > 1 and sys.argv[1] == "watch":
+        import os
+        if os.name == "nt" and os.environ.get("PA_ENGINE_CHILD") != "1":
+            from pa.engine import main as supervise
+            sys.exit(supervise())
+    if len(sys.argv) > 1 and sys.argv[1] == "portal-timetable":
+        from pa.portal import main as portal_timetable
+        return portal_timetable(sys.argv[2:])
     if len(sys.argv) > 1 and sys.argv[1] == "doctor":
         from pa.doctor import main as doctor
         sys.exit(doctor(sys.argv[2:]))
@@ -268,6 +276,7 @@ def main():
     p = argparse.ArgumentParser(prog="pa", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("doctor", help="설치·인증·개인 설정 진단 (--browser, --ai)")
+    sub.add_parser("portal-timetable", help="제주대 포털 시간표 조회·가져오기 (--term 20 --apply)")
     sub.add_parser("list").set_defaults(fn=cmd_list)
     sub.add_parser("sync").set_defaults(fn=cmd_sync)
     sub.add_parser("inbox").set_defaults(fn=cmd_inbox)

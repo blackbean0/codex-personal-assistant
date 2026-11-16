@@ -63,8 +63,13 @@ def run(with_ai=False, with_browser=False):
                         page.locator(f'[data-act="jobcancel"][data-id="{job}"]').evaluate("button => button.click()")
                         page.wait_for_function("id => D.jobs.some(j => j.id === id && j.status === 'cancelled')", arg=job)
                         assert not errors, "Dashboard JavaScript failed (details hidden)"
+                        second = browser.new_page()
+                        second.goto(f"http://127.0.0.1:{port}", wait_until="networkidle")
+                        second.wait_for_function("D !== null && D.duplicate === true")
+                        assert second.get_by_text("다른 대시보드 창이 이미 열려 있어요", exact=True).count() > 0
+                        second.close()
                         page.close()
-                        print("Chromium dashboard, setup state, job counts and cancel button: PASS")
+                        print("Chromium dashboard, cancel button and duplicate-window notice: PASS")
                     if with_ai:
                         material = root / "materials" / "example" / "sample.pdf"
                         material.parent.mkdir(parents=True)
