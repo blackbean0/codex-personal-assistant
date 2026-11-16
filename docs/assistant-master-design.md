@@ -1,3 +1,5 @@
+> 과거 설계 자료입니다. Claude·WSL 전제나 구현 전 제안이 포함됩니다. 현재 실행 기준은 [README](../README.md), [AGENTS](../AGENTS.md), [Windows 설치 안내](LOCAL_SETUP_GUIDE.ko.md)입니다.
+
 # 개인 최적화 비서 — 종합 설계서
 
 > 작성 2026-11-12 · 상태: **R1~R8·R10·R11·휴대폰(Pages) 구현 완료**, R9 컨디션 보류. 아래 표의 💡 중 상당수는 이미 구현됨 —

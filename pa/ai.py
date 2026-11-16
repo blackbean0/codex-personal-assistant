@@ -46,6 +46,9 @@ def name():
 
 def safe_error(error):
     """Never forward raw CLI output, prompts or credential-bearing URLs to the UI."""
+    from pa.documents import DocumentError
+    if isinstance(error, DocumentError):
+        return str(error)
     text = str(error).lower()
     if isinstance(error, Cancelled):
         return "Codex 작업을 취소했습니다"

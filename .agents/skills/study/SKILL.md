@@ -3,7 +3,8 @@ name: study
 description: 강의를 들으며 공부하거나, 강의 내용 질문·기록·정리·자료 요약을 할 때 사용. "공부하자", "이거 무슨 뜻이야", "기록해줘", "강의 열어줘", "자료 요약해줘" 등.
 ---
 
-1. **`~/study_system/AGENTS.md` 를, 없으면 `~/study_system/CLAUDE.md` 를 읽고** 그 진행 방식과 기록 원칙을 그대로 따른다
+1. `config/assistant.yaml`의 프로젝트 경로를 확인한다. 기본 위치는 아래와 같다.
+   **`~/study_system/AGENTS.md` 를, 없으면 `~/study_system/CLAUDE.md` 를 읽고** 그 진행 방식과 기록 원칙을 그대로 따른다
    (사용자의 말을 그대로 기록하고 다듬지 않는다. 검증한 작업 단위마다 본인 origin에 커밋·push한다).
 2. 과목명 → 폴더는 config/assistant.yaml 의 projects 와 config/profile.md 의 과목 대응표 (실제 규칙은 config/courses.yaml).
 3. 답에 쓰는 자료는 이 순서로 찾는다.

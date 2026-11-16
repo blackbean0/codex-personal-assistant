@@ -1,3 +1,5 @@
+> 과거 설계 자료입니다. Claude·WSL 전제나 구현 전 제안이 포함됩니다. 현재 실행 기준은 [README](../README.md), [AGENTS](../AGENTS.md), [Windows 설치 안내](LOCAL_SETUP_GUIDE.ko.md)입니다.
+
 # 자료 연결 기능 계획서 (추천 + 실시간 찾기 + 경로 Tab + 📁 둘러보기)
 
 > 작성 2026-11-12 · 상태: **구현 완료 (2026-11-13, M1~M7)** — 사용법은 [usage.md "자료 연결"](usage.md)

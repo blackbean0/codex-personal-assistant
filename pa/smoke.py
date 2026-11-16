@@ -59,10 +59,12 @@ def run(with_ai=False, with_browser=False):
                         page.evaluate("load()")
                         page.wait_for_timeout(300)
                         assert page.evaluate("D.jobs.some(j => j.ai_calls !== undefined)")
+                        page.evaluate("UI.open.add('check'); render()")
+                        page.locator(f'[data-act="jobcancel"][data-id="{job}"]').evaluate("button => button.click()")
+                        page.wait_for_function("id => D.jobs.some(j => j.id === id && j.status === 'cancelled')", arg=job)
                         assert not errors, "Dashboard JavaScript failed (details hidden)"
-                        jobs.cancel(conn, job)
                         page.close()
-                        print("Chromium dashboard, setup state, job counts: PASS")
+                        print("Chromium dashboard, setup state, job counts and cancel button: PASS")
                     if with_ai:
                         material = root / "materials" / "example" / "sample.pdf"
                         material.parent.mkdir(parents=True)

@@ -8,9 +8,10 @@ DEFAULTS = {"study": "~/study_system", "report": "~/report", "quiz": "~/quiz_sys
 
 
 def project(name):
-    cfg = load_yaml("assistant").get("projects", {})
+    central_exists = (ROOT / "config/assistant.yaml").exists()
+    cfg = load_yaml("assistant").get("projects", {}) if central_exists else {}
     value = cfg.get(name)
-    if not value and not (ROOT / "config/assistant.yaml").exists():
+    if not value and not central_exists:
         legacy = load_yaml("courses")
         value = legacy.get("root") if name == "study" else legacy.get("quiz", {}).get("dir") if name == "quiz" else None
     return resolve(value or DEFAULTS[name])

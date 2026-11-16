@@ -5,7 +5,7 @@ description: Canvas 과제(보고서, 배움노트, 결과보고서, 발표자�
 
 1. `bin\pa.cmd task <키>` 로 마감·Canvas 과제 설명(배점·제출 형식·허용 파일)·보고서 파일 이름·연결된 자료를 한 번에 본다.
    키는 `bin\pa.cmd list` 맨 앞.
-2. **`~/report/AGENTS.md` 를, 없으면 `~/report/CLAUDE.md` 를 읽고** 글쓰기·파일명 규칙을 따른다.
+2. `config/assistant.yaml`의 report 경로에서 **`~/report/AGENTS.md` 를, 없으면 `~/report/CLAUDE.md` 를 읽고** 글쓰기·파일명 규칙을 따른다.
 3. 참고 자료
    - 연결된 자료가 있으면 **그것만** 쓴다 (사용자가 📄 자료 창에서 고른 것).
    - 없으면 `~/study_system/materials/<과목>/` 의 맞는 자료 + `~/study_system/notes/<과목>/` 의 사용자 노트.

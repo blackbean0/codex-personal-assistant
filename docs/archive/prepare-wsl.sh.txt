@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# Legacy optional WSL setup. Current Windows/Codex setup: docs/LOCAL_SETUP_GUIDE.ko.md
+# Run from Ubuntu as your normal Linux user: bash /mnt/c/.../scripts/prepare-wsl.sh
+set -euo pipefail
+if [[ "$(uname -s)" != Linux ]] || ! grep -qi microsoft /proc/sys/kernel/osrelease; then
+  echo "Run this script inside Ubuntu on WSL." >&2; exit 1
+fi
+if [[ "$EUID" == 0 ]]; then
+  echo "First launch Ubuntu and create your normal Linux user; do not run this as root." >&2; exit 1
+fi
+source_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+target="$HOME/personal_assistant"
+if [[ "$source_dir" != "$target" && -e "$target" && ! -f "$target/.prepared-from-windows" ]]; then
+  echo "Existing $target was preserved. Inspect it before copying this project." >&2; exit 1
+fi
+sudo apt-get update
+sudo apt-get install -y python3 python3-venv python3-pip git ca-certificates fonts-noto-cjk
+if [[ "$source_dir" != "$target" && ! -e "$target" ]]; then
+  stage="$(mktemp -d "$HOME/.personal-assistant-setup.XXXXXX")"
+  tar -C "$source_dir" --exclude='./.venv' --exclude='./.pytest_cache' --exclude='__pycache__' -cf - . | tar -C "$stage" -xf -
+  printf '%s\n' "$source_dir" > "$stage/.prepared-from-windows"
+  mv -- "$stage" "$target"
+fi
+cd -- "$target"
+if [[ -d .venv && ! -x .venv/bin/python ]]; then
+  echo "An incompatible .venv exists; it was preserved. Resolve it before rerunning." >&2; exit 1
+fi
+# Keep helper scripts and workstation-specific files local to this checkout.
+python3 - <<'PY'
+from pathlib import Path
+p = Path(".git/info/exclude")
+if p.parent.is_dir():
+    current = p.read_text(encoding="utf-8") if p.exists() else ""
+    names = ["/.prepared-from-windows", "/assistant.local.code-workspace",
+             "/docs/LOCAL_SETUP_GUIDE.ko.md", "/scripts/prepare-wsl.sh"]
+    additions = [n for n in names if n not in current.splitlines()]
+    if additions:
+        with p.open("a", encoding="utf-8") as out:
+            out.write("\n" + "\n".join(additions) + "\n")
+PY
+bash bin/setup
+.venv/bin/python -m playwright install --with-deps chromium
+# Existing setup creates these under HOME; use a workspace with matching paths.
+.venv/bin/python - <<'PY'
+import json
+from pathlib import Path
+home = Path.home()
+folders = [{"name": "Assistant", "path": "."},
+           {"name": "Study", "path": str(home / "study_system")},
+           {"name": "Reports", "path": str(home / "report")}]
+quiz = home / "quiz_system_project/pharmacy"
+if quiz.is_dir():
+    folders.append({"name": "Quiz", "path": str(quiz)})
+Path("assistant.local.code-workspace").write_text(
+    json.dumps({"folders": folders, "settings": {
+        "files.exclude": {"**/.venv": True, "**/__pycache__": True}}},
+        ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+PY
+.venv/bin/python -m pip check
+.venv/bin/python -m pa --help
+.venv/bin/python -m pytest -q
+.venv/bin/python - <<'PY'
+from playwright.sync_api import sync_playwright
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=True)
+    page = browser.new_page()
+    page.set_content("<title>Assistant setup check</title>")
+    assert page.title() == "Assistant setup check"
+    browser.close()
+print("Chromium launch: OK")
+PY
+printf '\nPrepared project: %s\n' "$target"
+printf 'Next: configure .env and config/*.yaml, add credentials.json, then bin/pa google-login.\n'
+printf 'Do not sync the example timetable into Google Calendar.\n'

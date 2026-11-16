@@ -11,6 +11,7 @@ description: 비서의 규칙(계획 요일·하루 최대 시간·알림·시�
 
 | 바꾸고 싶은 것 | 파일 · 항목 |
 |---|---|
+| 프로젝트 경로·보고서 학번·이름 | `config/assistant.yaml` → `projects`, `student` |
 | 공부하는 요일·순서, 하루 시작·끝, 하루 최대 시간, 휴식, 큰 일 나누기, 몇 주 앞까지 계획 | `config/timetable.yaml` → `planner` |
 | 종류별 기본 예상 시간 (강의·퀴즈·과제·할 일) | `config/timetable.yaml` → `planner.minutes` (한 항목만이면 `bin\pa.cmd time <키> <분>`) |
 | 시험 복습 (며칠 전, 몇 분) | `config/timetable.yaml` → `planner.exam_review` |

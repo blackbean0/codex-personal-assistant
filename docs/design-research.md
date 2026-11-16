@@ -1,3 +1,5 @@
+> 과거 설계 자료입니다. Claude·WSL 전제나 구현 전 제안이 포함됩니다. 현재 실행 기준은 [README](../README.md), [AGENTS](../AGENTS.md), [Windows 설치 안내](LOCAL_SETUP_GUIDE.ko.md)입니다.
+
 # 간결한 화면 설계 기법 정리 (대시보드 개편용)
 
 > 2026-11-15 · 책·업계 자료 조사. 시안 3개(`dashboard/designs/`)는 이 기법들을 각각 다르게 조합한 것.

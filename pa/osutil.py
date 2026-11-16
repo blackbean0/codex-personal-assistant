@@ -85,7 +85,8 @@ def launch_vscode(folder):
     """VSCode 로 이 폴더를 연다 (이미 열려 있으면 그 창이 앞으로)."""
     if IS_WSL or IS_WINDOWS:
         find, args = _vscode_target(folder)
-        ok, out = _ps("$ErrorActionPreference = 'Stop'\n" + find + f"Start-Process -FilePath $exe -ArgumentList '{args}'")
+        quoted = args.replace("'", "''")
+        ok, out = _ps("$ErrorActionPreference = 'Stop'\n" + find + f"Start-Process -FilePath $exe -ArgumentList '{quoted}'")
         if not ok:
             raise RuntimeError(out.splitlines()[-1] if out else "VSCode 를 열지 못했습니다")
         return

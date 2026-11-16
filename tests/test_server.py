@@ -46,6 +46,19 @@ def test_blocks_other_hosts_and_plain_posts(srv):
     assert req(port, "POST", "/api/ack", {"what": "x; DROP"})[0] == 400
 
 
+def test_job_cancel_route_reaches_the_queue(srv):
+    from pa import jobs
+    port, _ = srv
+    c = db.connect()
+    try:
+        job = jobs.enqueue(c, "notices", "cancel-test", "test")
+        status, result = req(port, "POST", "/api/job/cancel", {"id": job})
+        assert status == 200 and result["ok"]
+        assert jobs.recent(c)[0]["status"] == "cancelled"
+    finally:
+        c.close()
+
+
 def test_link_flow_respects_scope(srv, tmp_path):
     port, mat = srv
     st, j = req(port, "GET", "/api/files")

@@ -3,8 +3,8 @@
 보고서 작업 단계
   1. 과제 읽기     Canvas 과제 설명 (Canvas 과제일 때)
   2. 자료 모으기   materials 의 관련 자료, study_system/notes 의 내 노트
-  3. 파일 만들기   ~/report/<과목>/<학번>_<이름>_<과목>_<종류>_<번호>.md  (report/CLAUDE.md 규칙)
-  4. 초안 쓰기     내 구독의 AI (pa/ai.py: `claude -p` 또는 `codex exec`, report 폴더에서 실행 → report 규칙 적용)
+  3. 파일 만들기   ~/report/<과목>/<학번>_<이름>_<과목>_<종류>_<번호>.md  (report/AGENTS.md 규칙)
+  4. 초안 쓰기     내 구독의 AI (pa/ai.py: `codex exec`, report 폴더에서 실행 → report 규칙 적용)
   5. 열기          VSCode 편집기 탭
 
 AI 는 읽기만 허용한다. 파일은 엔진이 쓴다.

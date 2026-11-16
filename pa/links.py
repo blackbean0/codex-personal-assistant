@@ -59,7 +59,7 @@ def root_of(path, c=None):
 # ---- 파일 목록 -----------------------------------------------------------------
 
 def index(max_age=60):
-    """찾기 범위의 모든 파일 [{p, r, rel, m, s}] — 1분 보관 (study_system·report 는 Ubuntu 쪽이라 빠름)."""
+    """찾기 범위의 모든 파일 [{p, r, rel, m, s}] — 1분 보관."""
     if _index["files"] is not None and time.time() - _index["at"] < max_age:
         return _index["files"]
     c, out = cfg(), []

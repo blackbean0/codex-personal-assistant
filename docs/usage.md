@@ -1,8 +1,12 @@
 # 사용법
 
-## 매일 쓰는 법 (Claude 없이)
+현재 설정은 **Windows 직접 실행 + Codex**다. 명령은 PowerShell에서 실행한다.
+AI 기능은 Codex CLI를 사용한다. 규칙 원본은 `AGENTS.md`·`.agents/skills/`다.
+설치·인증·개인 설정 순서는 [Windows 설정 안내](LOCAL_SETUP_GUIDE.ko.md)를 따른다.
 
-1. VSCode 에서 `assistant.code-workspace` 를 연다 → **엔진이 켜지고, 대시보드가 VSCode 탭으로 자동으로 열린다**
+## 매일 쓰는 법 (Codex 없이)
+
+1. VSCode 에서 `assistant.local.code-workspace` 를 연다 (setup이 실제 경로로 생성) → **엔진이 켜지고, 대시보드가 VSCode 탭으로 자동으로 열린다**
    (이미 대시보드 탭이 열려 있으면 새로 열지 않는다 — 탭이 30초마다 '열려 있음' 신호를 보냄)
    - **처음 한 번**: `Ctrl+Shift+P → Tasks: Manage Automatic Tasks → Allow Automatic Tasks`.
      VSCode 는 이 설정이 없으면 '자동 작업 허용?'을 한 번만 묻고, 그때 닫았으면 다시 묻지도 실행하지도 않는다.
@@ -63,7 +67,7 @@
 ## 자료 연결 (📄 자료 창)
 
 할 일마다 "연결된 자료"를 두면 ✍ 보고서 작성·🤖 내용정리·🧩 퀴즈 요청이 **그 자료를 먼저** 쓴다.
-연결이 없으면 예전처럼 제목의 단서(`17강`·`Ch24`·`11주`)로 추측한다. Claude 는 쓰지 않는다 (파일 이름만 다룸).
+연결이 없으면 예전처럼 제목의 단서(`17강`·`Ch24`·`11주`)로 추측한다. Codex 는 쓰지 않는다 (파일 이름만 다룸).
 
 | 하는 법 | 설명 |
 |---|---|
@@ -73,17 +77,17 @@
 | 경로 | `/` 를 치면 폴더 따라가기 (예: `자료/organic_chemistry/`). `Tab` = 채우기 (폴더면 한 단계 들어감) |
 | 📁 둘러보기 | 그 과목 폴더에서 시작. 위 [자료][노트][보고서][📥 다운로드], 경로 줄, ⬆, 거르기, 이름순/최근순, 체크 → [선택한 n개 연결] |
 | 📥 다운로드에서도 찾기 | Windows 다운로드 폴더 **맨 위, 최근 7일, 문서만**. 연결하면 **그 할 일의 과목 자료 폴더로 옮긴 뒤** 연결 (과목을 모르면 물어봄) |
-| 🧩 퀴즈 요청 복사 | "/quiz 과목 제목 — 이 자료로 퀴즈 만들어줘 + 연결된 파일 목록" 이 복사됨 → Claude 채팅에 붙여 넣기 |
+| 🧩 퀴즈 요청 복사 | "quiz 스킬로 과목 제목 — 이 자료로 퀴즈 만들어줘 + 연결된 파일 목록" 이 복사됨 → Codex 채팅에 붙여 넣기 |
 
 - 할 일 하나에 **파일을 하나씩 원하는 만큼** (최대 10개). 폴더째 연결은 없다
 - 강의 플랫폼에서 받은 자료는 같은 주차의 강의와 **짝**으로 자동 연결된다 (🔗, 후보가 하나일 때만). 빼면 다시 넣지 않는다
 - 찾기 범위: `~/study_system/materials`, `~/study_system/notes`, `~/report` (+ 버튼을 켰을 때만 다운로드).
   범위·확장자·최대 개수·다운로드 기간은 `config/materials.yaml` — **바꾸려면 채팅에서** 말하면 된다
-- 채팅에서도: `bin/pa links <키>` 보기, `bin/pa link <키> <파일>` 연결, `bin/pa unlink <키> <파일>` 빼기
+- 채팅에서도: `bin\pa.cmd links <키>` 보기, `bin\pa.cmd link <키> <파일>` 연결, `bin\pa.cmd unlink <키> <파일>` 빼기
 
 ## 강의 플랫폼(LearningX) 연결 (R7)
 
-`bin/pa browser login` 으로 한 번 로그인해 두면 (로그인 정보는 `data/` 에만, git 제외) Canvas 확인 때:
+`bin\pa.cmd browser login` 으로 한 번 로그인해 두면 (로그인 정보는 `data/` 에만, git 제외) Canvas 확인 때:
 - **배포 자료 PDF 를 과목 materials 폴더로 자동 다운로드** (이미 있는 건 건너뜀, 교수자가 지운 자료는 받지 않음)
 - 강의의 **실제 길이·실제 출석 마감**을 쓰고, **수강을 마치면 자동으로 완료**
 - 지난 주차라도 안 들은 강의는 지각 수강 기간이 남았으면 할 일에 "(지각 수강)" 으로 추가
@@ -105,7 +109,7 @@
   켜 둔 동안은 `config/timetable.yaml` 의 `canvas.check_every_hours` 마다(기본 3, 0 이면 끔) + 대시보드 ⟳ 를 누를 때.
 - **15분마다** (가벼움 — 한 번에 몇 초, 대부분 인터넷 대기): 휴대폰 입력 가져오기, 퀴즈 기록, 곧 마감인 것의 제출·수강 확인,
   계획·마감 캘린더는 바뀐 게 있을 때만 Google 에 반영, 휴대폰 화면. 30분 안에 마감이 있으면 제출 확인만 3분마다.
-- **창은 늘 하나, VSCode 안 탭으로** (`config/timetable.yaml` 의 `dashboard.mode: vscode`): 비서 VSCode 확장(`bin/pa vscode-ext`, setup 이 설치)이
+- **창은 늘 하나, VSCode 안 탭으로** (`config/timetable.yaml` 의 `dashboard.mode: vscode`): 비서 VSCode 확장(`bin\pa.cmd vscode-ext`, setup 이 설치)이
   10초마다 엔진에 물어보고, 엔진이 열라고 하면 VSCode 안 탭(Simple Browser)으로 연다. 바깥 창은 열지 않는다.
   - VSCode 를 열면 몇 초 안에 안 탭이 뜬다. 탭이 **3분 동안 없으면 다시 연다** (`dashboard.reopen_minutes`, 0 이면 안 함)
   - VSCode 를 직접 닫으면 다시 열지 않는다. PC 로그인 때(엔진은 작업 스케줄러로 켜짐) VSCode 가 없으면 1분 뒤 VSCode 를 비서 폴더로 연다 (`start_vscode`)
@@ -114,9 +118,9 @@
   - 잠깐 닫아 두려면 대시보드 맨 아래 **'오늘은 끄기'** (내일 다시 켜짐).
   창은 입력 중이어도 30초마다 엔진에 신호를 보내고, 닫으면 닫았다고 알린다. PC 가 잠들었다 깬 직후에는 창이 다시 신호를 보낼 때까지 기다린다.
   VSCode 를 열 때 이미 창이 있으면 새로 열지 않고, 그래도 겹치면 나중 창에 회색 안내 "다른 대시보드 창이 이미 열려 있어요".
-- **직접 열기**: VSCode `Ctrl+Shift+P` → **비서: 대시보드 열기 (VSCode 안)** · 터미널 `bin/pa open` (VSCode 가 꺼져 있으면 VSCode 를 엶) ·
+- **직접 열기**: VSCode `Ctrl+Shift+P` → **비서: 대시보드 열기 (VSCode 안)** · 터미널 `bin\pa.cmd open` (VSCode 가 꺼져 있으면 VSCode 를 엶) ·
   아무 브라우저에서 http://localhost:8765
-- **바탕화면 '비서' 바로가기**: `bin/pa shortcut` 으로 한 번 만든다 → 누르면 VSCode 가 비서 폴더로 열리고 엔진·대시보드가 자동으로 켜진다
+- **바탕화면 '비서' 바로가기**: `bin\pa.cmd shortcut` 으로 한 번 만든다 → 누르면 VSCode 가 비서 폴더로 열리고 엔진·대시보드가 자동으로 켜진다
 - **엔진이 꺼졌을 때** (주소가 안 열림): Windows 작업 스케줄러에 등록했으면 다음 로그인 때 저절로 (아래), 지금 켜려면
   `Ctrl+Shift+P` → `Tasks: Run Task` → **비서: 자동 감시**, 바탕화면 '비서', 또는 PowerShell `Start-ScheduledTask -TaskName PersonalAssistant-Engine`
 - 엔진은 `pa/*.py` 가 바뀌면 스스로 다시 시작한다. 바뀐 코드에 오류가 있으면 다시 시작하지 않고 예전 코드로 계속하고,
@@ -124,9 +128,9 @@
 
 ## VSCode 를 안 열어도 자동 실행 (Windows 작업 스케줄러)
 
-- **PersonalAssistant-Engine**: Windows 로그인할 때 엔진(`bin/pa watch`)을 창 없이 켜 둔다 → VSCode 를 안 열어도 대시보드·자동 계획·알림이 돌고,
+- **PersonalAssistant-Engine**: Windows 로그인할 때 엔진(`bin\pa.cmd watch`)을 창 없이 켜 둔다 → VSCode 를 안 열어도 대시보드·자동 계획·알림이 돌고,
   대시보드 창도 1분쯤 뒤 저절로 뜬다. 엔진이 꺼지면 1분 뒤 다시 켠다. VSCode 를 열어도 엔진이 둘이 되지 않는다.
-- **PersonalAssistant-Sync**: 로그인할 때 + 매일 07:00·13:00·19:00 에 `bin/pa run --full` (엔진이 꺼져 있을 때의 보험).
+- **PersonalAssistant-Sync**: 로그인할 때 + 매일 07:00·13:00·19:00 에 `bin\pa.cmd run --full` (엔진이 꺼져 있을 때의 보험).
 Windows PowerShell 에서 한 번만:
 
 ```powershell
@@ -141,7 +145,7 @@ powershell -ExecutionPolicy Bypass -File "$HOME\personal_assistant\scripts\windo
 
 ## 공지 · 시험 · 요약 (R6·R8)
 
-- **📢 새 공지**: Canvas 확인 때 새 공지를 모아 보여 준다 (코드만). [🤖 요약·제외 후보 찾기] 를 누르면 그때만 Claude 가
+- **📢 새 공지**: Canvas 확인 때 새 공지를 모아 보여 준다 (코드만). [🤖 요약·제외 후보 찾기] 를 누르면 그때만 Codex 가
   공지마다 한 줄 요약 + "안 내도 될 것 같은 과제"를 제안 → [제외] / [아니요]
 - **시험 모드**: 제목에 `시험`·`고사` 가 들어간 할 일 (예: `생화학 기말고사 @12-15 10시 #생화학`) →
   시험 7·4·2일 전부터 복습 1시간씩 3번 자동 배치 (`config/timetable.yaml` 의 `exam_review`).
@@ -154,13 +158,13 @@ powershell -ExecutionPolicy Bypass -File "$HOME\personal_assistant\scripts\windo
   1. Canvas 과제 설명·마감·보고서 파일 이름(이미 있으면 [열기]) 확인
   2. 아래 📄 자료 창에서 참고할 파일 고르기 (고른 것만 씀, 없으면 제목으로 추측)
   3. "어떻게 쓸까요?" 칸에 지침 (분량·구성·강조점·내 의견·말투) + "내 생각 자리는 비워 두기" 선택 — 저장되어 다음에도 그대로
-  4. 고르기: **💬 채팅에서 같이 쓰기** (파일을 VSCode 에 열고, 과제·자료·지침을 담은 `/assignment …` 요청을 복사 →
-     오른쪽 Claude 채팅에 붙여 넣어 대화하며 씀) / **🤖 초안 한 번에** (Claude 가 뒤에서 전체 초안, 있던 파일은 `_old1` 로 보관) /
-     **📝 빈 파일만** (규칙 이름·제목·학번 줄만, Claude 안 씀)
-     / **🗂 VSCode 작업 창** (report 폴더를 VSCode 새 창으로 + 보고서 파일 — 그 창의 Claude 는 report 글쓰기 규칙을 따름)
+  4. 고르기: **💬 채팅에서 같이 쓰기** (파일을 VSCode 에 열고, 과제·자료·지침을 담은 `assignment 스킬로 …` 요청을 복사 →
+     오른쪽 Codex 채팅에 붙여 넣어 대화하며 씀) / **🤖 초안 한 번에** (Codex 가 뒤에서 전체 초안, 있던 파일은 `_old1` 로 보관) /
+     **📝 빈 파일만** (규칙 이름·제목·학번 줄만, Codex 안 씀)
+     / **🗂 VSCode 작업 창** (report 폴더를 VSCode 새 창으로 + 보고서 파일 — 그 창의 Codex 는 report 글쓰기 규칙을 따름)
   - 강의 줄의 **🗂**: study_system 을 VSCode 새 창으로 (번호가 맞는 내 노트가 있으면 함께)
   - 보고서 파일이 생기면 **Windows 탐색기가 그 파일을 선택한 채 열린다**. ✍ 창의 **📄 PDF 만들기** (A4, 쪽수 알려 줌) · **📂 위치**
-- Claude 는 위 버튼을 눌렀을 때만 쓴다. 🤖 작업 칸에 몇 번 썼는지 표시
+- Codex 는 위 버튼을 눌렀을 때만 쓴다. 🤖 작업 칸에 몇 번 썼는지 표시
 
 ## 휴대폰에서 보기·입력 (GitHub Pages)
 
@@ -270,22 +274,22 @@ powershell -ExecutionPolicy Bypass -File "$HOME\personal_assistant\scripts\windo
 - `## 제외` 에 제목 단어를 쓰면 같은 이름의 과제가 앞으로 생겨도 계속 제외된다. 그중 하나만 살리려면 `!키` 줄을 더한다
   (대시보드의 "단어 규칙으로 숨김" 알림의 [보이기] 가 이 줄을 적는다)
 
-## 명령 (`bin/pa`)
+## 명령 (`bin\pa.cmd`)
 
 | 명령 | 하는 일 |
 |---|---|
-| `bin/pa watch` | 자동 감시 + 대시보드 서버 http://localhost:8765 (VSCode 를 열면 자동 실행됨) |
-| `bin/pa run [--full]` | 한 번 실행: inbox → (`--full` 이면 Canvas·공지·자료) → 계획 → 마감 캘린더 → TODAY.md·대시보드 |
-| `bin/pa list` | 남은 할 일 (맨 앞이 키) |
-| `bin/pa task <키>` | 한 항목: 마감·주소·Canvas 과제 설명·보고서 파일 이름·연결된 자료 |
-| `bin/pa links [키]` / `link <키> <파일>…` / `unlink <키> <파일>…` | 연결된 자료 보기·연결·빼기 |
-| `bin/pa notices [--all]` | 읽지 않은 공지 (`--all` 최근 2주 전부) |
-| `bin/pa done/ignore/unignore <키>` | 완료 / 계속 제외 / 제외 취소 |
-| `bin/pa time <키> <분>` | 예상 소요 시간 조정 |
-| `bin/pa plan [--dry-run]` | 계획만 다시 |
-| `bin/pa lectures [과목] [--open N]` | 이번 주 강의 목록·열기 |
-| `bin/pa browser login` | 학교 로그인 저장 (LearningX 연결) — 사용자가 직접 할 때만 |
-| `bin/pa google-login` | Google Calendar 다시 로그인 (브라우저가 열림) |
+| `bin\pa.cmd watch` | 자동 감시 + 대시보드 서버 http://localhost:8765 (VSCode 를 열면 자동 실행됨) |
+| `bin\pa.cmd run [--full]` | 한 번 실행: inbox → (`--full` 이면 Canvas·공지·자료) → 계획 → 마감 캘린더 → TODAY.md·대시보드 |
+| `bin\pa.cmd list` | 남은 할 일 (맨 앞이 키) |
+| `bin\pa.cmd task <키>` | 한 항목: 마감·주소·Canvas 과제 설명·보고서 파일 이름·연결된 자료 |
+| `bin\pa.cmd links [키]` / `link <키> <파일>…` / `unlink <키> <파일>…` | 연결된 자료 보기·연결·빼기 |
+| `bin\pa.cmd notices [--all]` | 읽지 않은 공지 (`--all` 최근 2주 전부) |
+| `bin\pa.cmd done/ignore/unignore <키>` | 완료 / 계속 제외 / 제외 취소 |
+| `bin\pa.cmd time <키> <분>` | 예상 소요 시간 조정 |
+| `bin\pa.cmd plan [--dry-run]` | 계획만 다시 |
+| `bin\pa.cmd lectures [과목] [--open N]` | 이번 주 강의 목록·열기 |
+| `bin\pa.cmd browser login` | 학교 로그인 저장 (LearningX 연결) — 사용자가 직접 할 때만 |
+| `bin\pa.cmd google-login` | Google Calendar 다시 로그인 (브라우저가 열림) |
 
 VSCode 에서 `Ctrl+Shift+P → 작업 실행 → 비서: 지금 전체 동기화` 로도 실행할 수 있다.
 
@@ -301,7 +305,7 @@ VSCode 에서 `Ctrl+Shift+P → 작업 실행 → 비서: 지금 전체 동기�
   마감 캘린더도 마감이 바뀌었거나 6시간이 지났을 때만 Google 에 묻는다
 - 단계마다 따로 실패한다 — Canvas 가 안 돼도 계획·화면은 갱신되고, 무엇이 안 됐는지 ⚠️ 로 알린다
 - Google 로그인이 만료되면 엔진이 멈추지 않고 "Google Calendar 로그인 필요" + [Google 다시 로그인] 버튼
-- `pa/*.py` 코드가 바뀌면 엔진이 새 코드로 스스로 다시 시작한다 (Claude 작업이 진행 중이면 끝난 뒤)
+- `pa/*.py` 코드가 바뀌면 엔진이 새 코드로 스스로 다시 시작한다 (Codex 작업이 진행 중이면 끝난 뒤)
 - 다운로드 폴더는 30초마다 맨 위만 한 번 본다. 그 목록을 📄 자료 창의 📥 가 그대로 쓴다
 - 1년 넘은 자동 기록(events)은 하루 한 번 전체 동기화 때 지운다
 
@@ -313,4 +317,4 @@ VSCode 에서 `Ctrl+Shift+P → 작업 실행 → 비서: 지금 전체 동기�
 ## 추가자료 폴더
 
 작업에 쓸 사진·파일(조원 필기 사진, 받은 PDF 등)은 `추가자료/<과목>/` 에 넣고 채팅에서 말하면 된다 (git 에 안 올라감).
-작업이 끝나면 Claude 가 남은 파일을 보여 주고 `~/study_system/materials/<과목>/` 의 어디로 옮길지, 지울지, 둘지 묻는다.
+작업이 끝나면 Codex 가 남은 파일을 보여 주고 `~/study_system/materials/<과목>/` 의 어디로 옮길지, 지울지, 둘지 묻는다.

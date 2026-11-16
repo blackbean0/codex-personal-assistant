@@ -907,7 +907,7 @@ function checkHtml(now, today) {
     const ST = { queued: "대기", running: "진행 중", done: "완료", failed: "실패", cancelled: "취소됨" };
     n += js.length; hint.push(`작업 ${js.length}`);
     G.push(`<div class="cgrp" id="jobs"><h3 class="cgrp-h">에이전트 작업</h3>${js.map(j => `<div class="citem"><span class="tx"><b>${ST[j.status] || j.status}</b> · ${esc(j.title)}
-      <small>${j.status === "failed" ? esc(j.error) : esc(j.step)}${j.ai_calls ? " · Codex 사용 " + j.ai_calls + "회" : ""}</small></span>
+      <small>${j.status === "failed" ? esc(j.error) : esc(j.step)}${j.ai_calls ? " · " + (j.ai_backend === "codex" ? "Codex" : "이전 AI") + " 사용 " + j.ai_calls + "회" : ""}</small></span>
       ${["queued", "running"].includes(j.status) ? `<button class="tbtn gray" data-act="jobcancel" data-id="${j.id}">취소</button>` : ""}
       ${j.status === "done" && j.result && j.kind !== "notices" ? `<span class="ac"><button class="tbtn" data-act="openfile" data-path="${esc(j.result)}" data-label="결과 열기">열기</button></span>` : ""}</div>`).join("")}</div>`);
   }

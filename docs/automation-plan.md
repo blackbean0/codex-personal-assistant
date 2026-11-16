@@ -1,3 +1,5 @@
+> 과거 설계 자료입니다. Claude·WSL 전제나 구현 전 제안이 포함됩니다. 현재 실행 기준은 [README](../README.md), [AGENTS](../AGENTS.md), [Windows 설치 안내](LOCAL_SETUP_GUIDE.ko.md)입니다.
+
 # 자동화 설계 계획서: Claude 없이 돌아가는 일정 관리
 
 > 상태: **P1~P4 구현 완료, P5·P6 계획** · 작성 2026-11-11

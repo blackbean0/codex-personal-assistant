@@ -4,9 +4,11 @@
     {
       "label": "비서: 자동 감시",
       "detail": "작업 공간을 열면 자동 시작 — 대시보드 서버 먼저, Canvas 확인은 뒤에서 (켤 때 + 3시간마다, config canvas.check_every_hours), inbox.md 저장 시 반영, 15분마다 계획",
-      "type": "shell",
-      "command": "${workspaceFolder}/bin/pa watch",
-      "windows": { "command": "${workspaceFolder}\\bin\\pa.cmd", "args": ["watch"], "options": { "shell": { "executable": "cmd.exe", "args": ["/d", "/c"] } } },
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+      },
       "isBackground": true,
       "problemMatcher": [],
       "runOptions": {
@@ -16,46 +18,81 @@
         "reveal": "silent",
         "panel": "dedicated",
         "showReuseMessage": false
-      }
+      },
+      "args": [
+        "-X",
+        "utf8",
+        "-m",
+        "pa",
+        "watch"
+      ]
     },
     {
       "label": "비서: 대시보드 열기",
       "detail": "대시보드 열기 — VSCode 안 탭(비서 확장, config dashboard.mode: vscode) 또는 앱 창(app). 이미 열려 있으면 건너뜀. VSCode 를 열 때는 확장이 알아서 연다",
-      "type": "shell",
-      "command": "${workspaceFolder}/bin/pa open",
-      "windows": { "command": "${workspaceFolder}\\bin\\pa.cmd", "args": ["open"], "options": { "shell": { "executable": "cmd.exe", "args": ["/d", "/c"] } } },
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+      },
       "dependsOn": "비서: 서버 대기",
       "problemMatcher": [],
       "presentation": {
         "reveal": "never",
         "panel": "shared",
         "showReuseMessage": false
-      }
+      },
+      "args": [
+        "-X",
+        "utf8",
+        "-m",
+        "pa",
+        "open"
+      ]
     },
     {
       "label": "비서: 서버 대기",
-      "type": "shell",
-      "command": "${workspaceFolder}/bin/pa dashboard-check",
-      "windows": { "command": "${workspaceFolder}\\bin\\pa.cmd", "args": ["dashboard-check"], "options": { "shell": { "executable": "cmd.exe", "args": ["/d", "/c"] } } },
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+      },
       "problemMatcher": [],
       "presentation": {
         "reveal": "never",
         "panel": "shared",
         "showReuseMessage": false
       },
-      "detail": "엔진 서버를 기다리고, 대시보드가 이미 열려 있으면 '열기'를 건너뜀"
+      "detail": "엔진 서버를 기다리고, 대시보드가 이미 열려 있으면 '열기'를 건너뜀",
+      "args": [
+        "-X",
+        "utf8",
+        "-m",
+        "pa",
+        "dashboard-check"
+      ]
     },
     {
       "label": "비서: 지금 전체 동기화",
       "detail": "Canvas 확인 → 과제 캘린더 → 계획 → TODAY.md·대시보드",
-      "type": "shell",
-      "command": "${workspaceFolder}/bin/pa run --full",
-      "windows": { "command": "${workspaceFolder}\\bin\\pa.cmd", "args": ["run", "--full"], "options": { "shell": { "executable": "cmd.exe", "args": ["/d", "/c"] } } },
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+      },
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
         "panel": "shared"
-      }
+      },
+      "args": [
+        "-X",
+        "utf8",
+        "-m",
+        "pa",
+        "run",
+        "--full"
+      ]
     }
   ]
 }

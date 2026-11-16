@@ -21,7 +21,7 @@ GET  /api/links?key=…  📄 자료 창: 연결된 자료 + 추천 + 시작 폴
 GET  /api/report-info?key=…  ✍ 창: Canvas 과제 설명 · 보고서 파일 이름·있는지 · 저장한 작성 지침
 POST /api/report-pdf  보고서 .md → A4 PDF (쪽수 알려 줌) → 탐색기에서 선택해 보여 줌 / POST /api/reveal 탐색기에서 위치 보기
 POST /api/workspace  🗂 VSCode 새 창: 과제 → ~/report + 보고서 파일 / 강의 → ~/study_system + 맞는 노트
-POST /api/report-brief, /api/report-file   작성 지침 저장 / Claude 없이 규칙 이름의 빈 파일 만들고 열기
+POST /api/report-brief, /api/report-file   작성 지침 저장 / AI 없이 규칙 이름의 빈 파일 만들고 열기
 GET  /api/note-for?key=…  강의를 들은 뒤 열 내 노트 (번호가 맞는 notes/<과목>/ 파일)
 GET  /api/files       찾기 범위의 파일 이름 목록 (1분 보관 — 실시간 찾기는 화면이 이 목록으로)
 GET  /api/ls?root=&path=   📁 둘러보기: 폴더 하나의 바로 아래 (범위 밖 거부)
@@ -31,8 +31,8 @@ POST /api/link-download   다운로드 파일을 그 과목 자료 폴더로 옮
 POST /api/open-file  자료 파일을 VSCode 탭으로 열기 (study_system·report·최근 다운로드만)
 POST /api/move-download, /api/dismiss-download   다운로드 폴더의 새 파일 정리
 POST /api/job/report 보고서 준비 + 초안 (에이전트 작업 대기열에 넣음)
-POST /api/job/notices 새 공지 요약 + 제외 후보 찾기 (Claude, 버튼으로만)
-POST /api/job/summary 자료 PDF 요약 (Claude, 버튼으로만)
+POST /api/job/notices 새 공지 요약 + 제외 후보 찾기 (Codex, 버튼으로만)
+POST /api/job/summary 자료 PDF 요약 (Codex, 버튼으로만)
 POST /api/job/summary-for  강의·과제에 맞는 자료를 찾아 바로 요약 (이미 있으면 그 정리를 연다)
 POST /api/notice/read, /api/notice/open, /api/suggest/dismiss
 POST /api/today      💭 하고 싶은 일을 오늘 하기 (오늘 23:59 마감을 붙임)
@@ -146,7 +146,10 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
-        self.wfile.write(data)
+        try:
+            self.wfile.write(data)
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            pass  # The browser may close or cancel a refresh while a response is being built.
 
     def _host_ok(self):
         # 다른 사이트가 이 서버에 요청을 보내는 것(DNS rebinding 등)을 막는다
@@ -277,7 +280,7 @@ class Handler(SimpleHTTPRequestHandler):
             elif action == "/api/quick":
                 msg = inbox.add_task_line(inbox.quick_line(str(body.get("text", ""))))
             elif action in ("/api/timer/start", "/api/timer/stop", "/api/worklog/add", "/api/worklog/delete", "/api/open", "/api/sync", "/api/open-file",
-                            "/api/move-download", "/api/dismiss-download", "/api/job/report", "/api/job/notices", "/api/job/summary", "/api/job/summary-for",
+                            "/api/move-download", "/api/dismiss-download", "/api/job/report", "/api/job/notices", "/api/job/summary", "/api/job/summary-for", "/api/job/cancel",
                             "/api/notice/read", "/api/notice/open", "/api/suggest/dismiss", "/api/browser-login", "/api/open-quiz",
                             "/api/google-login", "/api/ack", "/api/exam-dismiss",
                             "/api/link", "/api/unlink", "/api/link-download", "/api/report-brief", "/api/report-file", "/api/workspace", "/api/report-pdf", "/api/reveal",
@@ -411,7 +414,7 @@ class Handler(SimpleHTTPRequestHandler):
                 path = jobs.blank_report(conn, body["key"])
                 materials.open_window(jobs.REPORT_DIR, path)
                 return {"ok": True, "message": f"report 폴더를 VSCode 새 창으로 열었습니다 ({path.name})"}
-            if action == "/api/report-pdf":  # .md → 제출용 PDF (Claude 안 씀) → 탐색기에서 보여 줌
+            if action == "/api/report-pdf":  # .md → 제출용 PDF (AI 안 씀) → 탐색기에서 보여 줌
                 from pa import pdf
                 row = conn.execute("SELECT * FROM tasks WHERE key = ?", (body["key"],)).fetchone()
                 md = jobs.report_path(dict(row), conn) if row else None

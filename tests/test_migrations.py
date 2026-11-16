@@ -52,8 +52,18 @@ def test_report_failure_preserves_existing_file(tmp_path, monkeypatch):
 
 
 def test_central_paths_drive_default_material_roots(tmp_path, monkeypatch):
+    (tmp_path / "config").mkdir()
+    (tmp_path / "config/assistant.yaml").write_text("projects: {}", encoding="utf-8")
+    monkeypatch.setattr(settings, "ROOT", tmp_path)
     monkeypatch.setattr(settings, "load_yaml", lambda _: {"projects": {"study": str(tmp_path / "한글 자료")}})
     assert settings.material_path("~/study_system/materials") == tmp_path / "한글 자료" / "materials"
+
+
+def test_legacy_custom_paths_are_used_before_central_migration(tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "ROOT", tmp_path)
+    monkeypatch.setattr(settings, "load_yaml", lambda name: {"root": str(tmp_path / "old study"), "quiz": {"dir": str(tmp_path / "old quiz")}})
+    assert settings.project("study") == tmp_path / "old study"
+    assert settings.project("quiz") == tmp_path / "old quiz"
 
 
 def test_invalid_windows_student_filename_rejected(monkeypatch):

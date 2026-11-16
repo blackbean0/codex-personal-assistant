@@ -1,12 +1,13 @@
 ---
 name: quiz
-description: 공부한 내용·강의 자료로 퀴즈 덱을 만들거나 퀴즈 앱을 수정할 때 사용. "퀴즈 만들어줘", "문제로 만들어줘", "덱", 대시보드 🧩 로 복사한 "/quiz …" 요청 등.
+description: 공부한 내용·강의 자료로 퀴즈 덱을 만들거나 퀴즈 앱을 수정할 때 사용. "퀴즈 만들어줘", "문제로 만들어줘", "덱", 대시보드 🧩 로 복사한 "quiz 스킬로 …" 요청 등.
 ---
 
-1. **`~/quiz_system_project/pharmacy/AGENTS.md` (없으면 `CLAUDE.md`), `docs/QUIZ_PLANNING_METHOD.md`,
+1. `config/assistant.yaml`의 프로젝트 경로를 확인한다. 기본 위치는 아래와 같다.
+   **`~/quiz_system_project/pharmacy/AGENTS.md` (없으면 `CLAUDE.md`), `docs/QUIZ_PLANNING_METHOD.md`,
    관련 과목 계획서 `docs/<과목>_*_PLAN.md` 를 먼저 읽는다.** 그림은 기존 덱의 방식도 확인한다.
 2. 재료 정하기
-   - 대시보드 🧩 로 복사한 요청(`$quiz <과목> <제목> … 연결된 자료: - 경로`)이면 **그 파일들이 주재료**다.
+   - 대시보드 🧩 로 복사한 요청(`quiz 스킬로 <과목> <제목> … 연결된 자료: - 경로`)이면 **그 파일들이 주재료**다.
    - 키만 있으면 `bin\pa.cmd links <키>`. 연결이 없으면 과목 대응표로 `~/study_system/materials/<과목>/` (`요약/` 포함)와
      `~/study_system/notes/<과목>/` (사용자의 말 — 사용자가 기억하고 싶은 것) 에서 찾는다.
    - 무엇을 재료로 쓸지 목록을 보여 주고 확인받는다.
