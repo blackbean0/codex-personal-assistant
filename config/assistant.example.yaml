@@ -1,0 +1,11 @@
+# 개인 값은 assistant.yaml 에 저장한다 (Git 제외). 경로는 ~ 또는 절대 경로.
+projects:
+  study: ~/study_system
+  report: ~/report
+  quiz: ~/quiz_system_project/pharmacy
+student:
+  id: ""
+  name: ""
+git:
+  repository: ""
+  auto_push: true

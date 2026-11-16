@@ -12,13 +12,32 @@ AI 는 읽기만 허용한다. 파일은 엔진이 쓴다.
 import html
 import re
 import subprocess
+import threading
 from datetime import datetime
 from pathlib import Path
 
-from pa import ai, canvas, db, links, materials
+from pa import ai, canvas, db, links, materials, settings
 from pa.model import KST, now, parse_dt, short_course
 
-REPORT_DIR = Path.home() / "report"
+REPORT_DIR = settings.project("report")
+_cancellations = {}
+
+
+def cancel(conn, job_id):
+    row = conn.execute("SELECT status FROM jobs WHERE id = ?", (job_id,)).fetchone()
+    if not row or row["status"] not in ("queued", "running"):
+        return False
+    event = _cancellations.get(int(job_id))
+    if event:
+        event.set()
+    _update(conn, job_id, status="cancelled", step="취소됨")
+    return True
+
+
+def _check_cancel():
+    event = getattr(ai._local, "cancel", None)
+    if event and event.is_set():
+        raise ai.Cancelled()
 MAX_REF_BYTES = 15 * 1024 * 1024  # 단서 없이 고른 참고 자료는 이보다 작은 것만
 DOC_KINDS = [("결과보고서", "결과보고서"), ("예비보고서", "예비보고서"), ("성찰보고서", "성찰보고서"),
              ("배움노트", "배움노트"), ("보고서", "보고서"), ("발표", "발표자료"), ("텍스트", "텍스트"),
@@ -50,7 +69,7 @@ def _update(conn, job_id, **fields):
 def recent(conn):
     since = (now().replace(hour=0, minute=0)).isoformat()
     return [dict(r) for r in conn.execute(
-        "SELECT id, kind, key, title, status, step, result, error, claude, updated_at FROM jobs "
+        "SELECT id, kind, key, title, status, step, result, error, ai_calls, ai_backend, updated_at FROM jobs "
         "WHERE status IN ('queued', 'running') OR updated_at >= ? ORDER BY id DESC LIMIT 10", (since,))]
 
 
@@ -59,34 +78,39 @@ def run_next(conn):
     row = conn.execute("SELECT * FROM jobs WHERE status = 'queued' ORDER BY id LIMIT 1").fetchone()
     if not row:
         return False
-    _update(conn, row["id"], status="running", step="시작")
+    event = threading.Event()
+    _cancellations[row["id"]] = event
+    ai._local.cancel = event
+    _update(conn, row["id"], status="running", step="시작", ai_backend="codex")
     try:
         result = {"report": report_job, "report-force": lambda c, j: report_job(c, j, force=True),
                   "notices": notices_job, "summary": summary_job}[row["kind"]](conn, row)
+        _check_cancel()
         _update(conn, row["id"], status="done", step="완료", result=str(result))
         db.log(conn, "job_done", row["key"], kind=row["kind"], result=str(result))
+    except ai.Cancelled:
+        _update(conn, row["id"], status="cancelled", step="취소됨", error=None)
     except Exception as e:
-        _update(conn, row["id"], status="failed", error=str(e)[:500])
-        db.log(conn, "job_failed", row["key"], kind=row["kind"], error=str(e)[:200])
+        error = ai.safe_error(e)
+        _update(conn, row["id"], status="failed", error=error)
+        db.log(conn, "job_failed", row["key"], kind=row["kind"], error=error)
+    finally:
+        _cancellations.pop(row["id"], None)
+        ai._local.cancel = None
     conn.commit()
     return True
 
 
 def reset_stuck(conn):
-    """엔진이 꺼지면서 '진행 중'으로 남은 작업은 다시 대기열로."""
-    conn.execute("UPDATE jobs SET status = 'queued', step = '다시 시작 대기' WHERE status = 'running'")
+    """Interrupted paid AI work must never silently run a second time."""
+    conn.execute("UPDATE jobs SET status = 'failed', step = '중단됨', error = '엔진이 종료되어 중단됐습니다. 필요하면 다시 요청하세요' WHERE status = 'running'")
     conn.commit()
 
 
 # ---- 보고서 ---------------------------------------------------------------
 
 def student():
-    """학번·이름은 report/CLAUDE.md 에서 읽는다 (규칙 파일이 한 곳에서 관리). 없으면 bin/setup 이 견본을 복사해 둔다."""
-    rules = REPORT_DIR / "CLAUDE.md"
-    m = rules.exists() and re.search(r"학번은\s*(\d+),\s*이름은\s*(\S+?)다", rules.read_text(encoding="utf-8"))
-    if not m:
-        raise ValueError(f"{rules} 에서 학번·이름을 찾지 못함 — 0-1 절의 <학번>·<이름> 을 채우세요 (없으면 bin/setup)")
-    return m.group(1), m.group(2)
+    return settings.student()
 
 
 def doc_kind(title):
@@ -206,14 +230,6 @@ def report_job(conn, job, force=False):
         _update(conn, job["id"], step="이미 있는 파일 열기")
         materials.open_file(path)
         return path
-    if path.exists() and path.read_text(encoding="utf-8").strip() == _template(task).strip():  # 📝 로 만든 빈 파일이면 그냥 덮어씀
-        path.unlink()
-    if path.exists():  # 새로 쓰기: 지금 파일은 _old 로 보관 (지우지 않음)
-        n = 1
-        while (old := path.with_name(f"{path.stem}_old{n}{path.suffix}")).exists():
-            n += 1
-        path.rename(old)
-
     _update(conn, job["id"], step=f"4/5 초안 쓰기 ({ai.name()}, 몇 분 걸림)")
     b = brief(conn, task["key"])
     blanks = ("- 학생 자신의 생각, 관찰, 경험, 의견이 들어가야 할 자리는 지어내지 말고\n"
@@ -221,18 +237,18 @@ def report_job(conn, job, force=False):
               "- 학생의 의견 부분도 지침과 노트를 근거로 초안을 쓴다. 노트·지침에 없는 개인 경험은 지어내지 않는다.")
     sid, name = student()
     due = parse_dt(task["due"])
-    prompt = f"""학생의 과제 초안을 쓴다. 이 폴더의 CLAUDE.md(글쓰기 규칙)를 모두 지킨다.
+    prompt = f"""학생의 과제 초안을 쓴다. 이 폴더의 AGENTS.md(없으면 CLAUDE.md)의 글쓰기 규칙을 모두 지킨다.
 
 과제: {task['title']}
 과목: {short_course(task['course']) or '-'}
-마감: {due:%Y-%m-%d %H:%M} 까지
+마감: {due.strftime('%Y-%m-%d %H:%M') if due else '없음'}
 과제 설명 (Canvas):
 {desc or '(설명 없음 — 제목으로 판단)'}
 
-학생의 작성 지침 (가장 먼저 따른다. 단 CLAUDE.md 규칙과 사실 확인 원칙 안에서):
+학생의 작성 지침 (가장 먼저 따른다. 단 프로젝트 규칙과 사실 확인 원칙 안에서):
 {b['text'] or '(없음 — 과제 설명대로)'}
 
-참고 자료 (필요한 부분만 Read 로 읽는다):
+참고 자료 (추출한 본문을 함께 전달한다):
 {chr(10).join('- ' + str(f) for f in mats) or '- (없음)'}
 
 학생 본인의 공부 노트 (학생의 말이다. 내용과 표현을 우선 활용한다):
@@ -245,13 +261,14 @@ def report_job(conn, job, force=False):
 {blanks}
 - 확인하지 않은 사실과 참고문헌은 쓰지 않는다. 자료에서 가져온 내용은 어느 자료인지 괄호로 적는다.
 """
-    text = ai.ask(prompt, cwd=REPORT_DIR, add_dirs=[materials._cfg()["root"]], timeout=900)
-    conn.execute("UPDATE jobs SET claude = claude + 1 WHERE id = ?", (job["id"],))
+    text = ai.ask(prompt, files=mats + notes, cwd=REPORT_DIR, timeout=900)
+    conn.execute("UPDATE jobs SET ai_calls = ai_calls + 1 WHERE id = ?", (job["id"],))
     text = re.sub(r"^```(?:markdown)?\s*|\s*```$", "", text.strip())
     if not text.startswith("#"):
-        raise ValueError("초안 형식이 이상함: " + text[:120])
+        raise ValueError("초안 형식이 올바르지 않습니다")
+    _check_cancel()
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text + "\n", encoding="utf-8")
+    _write_result(path, text, backup=path.exists())
 
     _update(conn, job["id"], step="5/5 열기")
     try:
@@ -263,6 +280,35 @@ def report_job(conn, job, force=False):
 
 
 # ---- 공지 정리 (버튼을 눌렀을 때만) ------------------------------------------
+
+NOTICE_SCHEMA = {
+    "type": "object", "additionalProperties": False,
+    "properties": {name: {"type": "array", "items": {"type": "object", "additionalProperties": False,
+        "properties": {key: {"type": "string"} for key in keys}, "required": list(keys)}}
+        for name, keys in (("summaries", ("id", "summary")), ("exclude", ("key", "reason")))},
+    "required": ["summaries", "exclude"],
+}
+
+
+def _write_result(path, text, backup=False):
+    """Stage complete UTF-8 output before replacing anything the user already has."""
+    import shutil
+    import tempfile
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent, suffix=".tmp", delete=False) as f:
+        f.write(text + "\n")
+        staged = Path(f.name)
+    try:
+        _check_cancel()
+        if backup:
+            n = 1
+            while (old := path.with_name(f"{path.stem}_old{n}{path.suffix}")).exists():
+                n += 1
+            shutil.copy2(path, old)
+        staged.replace(path)
+    finally:
+        staged.unlink(missing_ok=True)
+
 
 def notices_job(conn, job):
     """새 공지를 AI 가 읽고: 공지마다 한 줄 요약 + '이 학생이 안 해도 되는' 과제 제외 후보."""
@@ -284,14 +330,16 @@ def notices_job(conn, job):
  "exclude": [{"key": "과제 key", "reason": "공지의 어느 문장 때문인지 짧게"}]}
 exclude 에는 공지가 '이 학생은 내지 않아도 된다'고 분명히 말하는 과제만 넣는다
 (예: 조장·대표만 제출, 해당자만 제출, 과제 취소). 애매하면 넣지 않는다. 학생이 조장인지 모르면 넣고 이유에 그 조건을 적는다."""
-    text = ai.ask(prompt, timeout=600)
-    conn.execute("UPDATE jobs SET claude = claude + 1 WHERE id = ?", (job["id"],))
-    m = re.search(r"\{.*\}", text, re.S)
-    if not m:
-        raise ValueError(f"{ai.name()} 응답을 읽지 못함: " + text[:120])
-    data = _json.loads(m.group(0))
+    text = ai.ask(prompt, timeout=600, schema=NOTICE_SCHEMA)
+    conn.execute("UPDATE jobs SET ai_calls = ai_calls + 1 WHERE id = ?", (job["id"],))
+    data = _json.loads(text)
+    import jsonschema
+    jsonschema.validate(data, NOTICE_SCHEMA)
+    _check_cancel()
+    known_notes = {n["id"] for n in notes}
     for x in data.get("summaries", []):
-        conn.execute("UPDATE notices SET summary = ? WHERE id = ?", (x.get("summary", ""), str(x.get("id"))))
+        if x["id"] in known_notes:
+            conn.execute("UPDATE notices SET summary = ? WHERE id = ?", (x["summary"], x["id"]))
     known = {t["key"]: t for t in tasks}
     sugg = [{"key": x["key"], "title": known[x["key"]]["title"], "course": short_course(known[x["key"]]["course"]),
              "reason": x.get("reason", "")} for x in data.get("exclude", []) if x.get("key") in known]
@@ -323,7 +371,7 @@ def summary_job(conn, job):
         materials.open_file(out)
         return out
     _update(conn, job["id"], step=f"요약 쓰는 중 ({ai.name()}, 몇 분 걸림)")
-    prompt = f"""학생이 공부할 강의 자료를 요약한다. 이 파일을 Read 로 읽는다: {pdf}
+    prompt = f"""학생이 공부할 강의 자료를 요약한다. 이 파일을 읽는다: {pdf}
 
 마크다운만 출력한다 (인사·설명·코드 블록 표시 없이). 구성:
 # {pdf.stem} 요약
@@ -332,13 +380,14 @@ def summary_job(conn, job):
 ## 시험에 나올 만한 포인트 — 자료에서 강조된 것 위주
 ## 헷갈리기 쉬운 것
 자료에 없는 내용은 쓰지 않는다. 그림·구조식은 말로 설명하고 몇 쪽에 있는지 적는다. 해라체."""
-    text = ai.ask(prompt, cwd=pdf.parent, timeout=900)
-    conn.execute("UPDATE jobs SET claude = claude + 1 WHERE id = ?", (job["id"],))
+    text = ai.ask(prompt, files=[pdf], cwd=materials._cfg()["root"], timeout=900)
+    conn.execute("UPDATE jobs SET ai_calls = ai_calls + 1 WHERE id = ?", (job["id"],))
     text = re.sub(r"^```(?:markdown)?\s*|\s*```$", "", text.strip())
     if not text.startswith("#"):
-        raise ValueError("요약 형식이 이상함: " + text[:120])
+        raise ValueError("요약 형식이 올바르지 않습니다")
+    _check_cancel()
     out.parent.mkdir(exist_ok=True)
-    out.write_text(text + "\n", encoding="utf-8")
+    _write_result(out, text)
     try:
         materials.open_file(out)
     except Exception:

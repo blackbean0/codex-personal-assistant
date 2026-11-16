@@ -155,6 +155,9 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if not self._host_ok():
             return self._json(403, {"error": "host"})
+        if self.path.split("?")[0] == "/api/setup":
+            from pa.doctor import readiness
+            return self._json(200, readiness())
         if self.path.startswith(("/api/files", "/api/downloads", "/api/ls", "/api/links")):
             return self._links_get()
         if self.path.startswith("/api/note-for"):  # 강의를 들은 뒤: 그 강의의 내 노트가 있으면 (study_system/notes)
@@ -218,6 +221,8 @@ class Handler(SimpleHTTPRequestHandler):
             finally:
                 conn.close()
             data["duplicate"] = bool(vid) and is_duplicate(vid)
+            from pa.doctor import readiness
+            data["setup"] = readiness()
             from pa import pipeline  # 같은 프로세스의 엔진 상태 (켤 때·⟳ 최신화 중인지)
             data["syncing"] = pipeline.STATE["full"]
             data["reopen"] = {"minutes": pipeline.reopen_minutes(), "paused": pipeline.dash_paused(), "mode": pipeline.dash_mode()}
@@ -489,6 +494,8 @@ class Handler(SimpleHTTPRequestHandler):
             if action == "/api/job/summary":
                 jobs.enqueue(conn, "summary", body["path"], "요약: " + Path(body["path"]).stem)
                 return {"ok": True}
+            if action == "/api/job/cancel":
+                return {"ok": jobs.cancel(conn, int(body["id"]))}
             if action == "/api/job/notices":
                 jobs.enqueue(conn, "notices", "notices", "새 공지 정리")
                 return {"ok": True}

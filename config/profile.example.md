@@ -1,10 +1,10 @@
-# 내 정보 — 견본. bin/setup 이 config/profile.md 로 복사한다 (git 에 안 올라감). Claude Code 가 CLAUDE.md 를 통해 읽는다.
+# 내 정보 — 견본. bin\setup.cmd 가 config/profile.md 로 복사한다 (Git 제외). Codex가 AGENTS.md 지침에 따라 읽는다.
 
 - 사용자는 ○○대 ○○과 학생이다.
 
 ## 내 저장소
 
-- (선택) 코드 백업 저장소. 비워 두면 Claude 는 커밋만 하고 push 는 묻는다.
+- 본인 코드 저장소와 작업 후 커밋·push 선호를 기록한다. 인증 정보는 쓰지 않는다.
 
 ## 과목 대응표
 

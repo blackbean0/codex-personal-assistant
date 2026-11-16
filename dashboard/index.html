@@ -684,6 +684,10 @@ function render() {
   $("syncBtn").hidden = !LIVE; $("mobSet").hidden = !MOB;
   $("quickForm").hidden = !(LIVE || MOB);
   $("status").innerHTML = statusHtml(now);
+  if (LIVE && D.setup) {
+    const s = D.setup, a = s.ai || {};
+    $("status").insertAdjacentHTML("beforeend", `<span class="small" title="${esc((s.missing || []).join('\n'))}"> · Codex ${a.authenticated ? "연결됨" : "설치·인증 확인 필요"}${s.missing?.length ? ` · 초기 설정 ${s.missing.length}건 필요` : ""}</span>`);
+  }
   $("courses").innerHTML = (D.courses || []).map(c => `<option value="${esc(c)}">`).join("");
 
   // 한 줄 요약 — 상자(pill) 대신 글자로
@@ -900,11 +904,12 @@ function checkHtml(now, today) {
   }
   const js = (D.jobs || []).filter(j => j.status !== "failed");
   if (js.length) {
-    const ST = { queued: "대기", running: "진행 중", done: "완료", failed: "실패" };
+    const ST = { queued: "대기", running: "진행 중", done: "완료", failed: "실패", cancelled: "취소됨" };
     n += js.length; hint.push(`작업 ${js.length}`);
     G.push(`<div class="cgrp" id="jobs"><h3 class="cgrp-h">에이전트 작업</h3>${js.map(j => `<div class="citem"><span class="tx"><b>${ST[j.status] || j.status}</b> · ${esc(j.title)}
-      <small>${j.status === "failed" ? esc(j.error) : esc(j.step)}${j.claude ? " · " + AI() + " 사용 " + j.claude + "회" : ""}</small></span>
-      ${j.status === "done" && j.result ? `<span class="ac"><button class="tbtn" data-act="openfile" data-path="${esc(j.result)}" data-label="결과 열기">열기</button></span>` : ""}</div>`).join("")}</div>`);
+      <small>${j.status === "failed" ? esc(j.error) : esc(j.step)}${j.ai_calls ? " · Codex 사용 " + j.ai_calls + "회" : ""}</small></span>
+      ${["queued", "running"].includes(j.status) ? `<button class="tbtn gray" data-act="jobcancel" data-id="${j.id}">취소</button>` : ""}
+      ${j.status === "done" && j.result && j.kind !== "notices" ? `<span class="ac"><button class="tbtn" data-act="openfile" data-path="${esc(j.result)}" data-label="결과 열기">열기</button></span>` : ""}</div>`).join("")}</div>`);
   }
   const dls = D.downloads || [];
   if (dls.length) {
@@ -1512,7 +1517,7 @@ async function repAction(act) {
       await api("report-brief", repBrief());
       const f = await api("report-file", { key: REP.key });  // 없으면 빈 파일을 만들어 열어 둠
       const b = repBrief(), files = (MP && MP.key === REP.key ? MP.links : []).filter(x => x.exists);
-      const text = `/assignment ${REP.key} ${REP.title} — 이 과제 보고서를 채팅에서 같이 쓰자.\n`
+      const text = `assignment 스킬로 ${REP.key} ${REP.title} — 이 과제 보고서를 채팅에서 같이 쓰자.\n`
         + `보고서 파일: ${f.path} (VSCode 에 열어 둠${REP.exists ? ", 이미 쓴 내용 있음" : ""})\n`
         + `내 지침: ${b.text.trim() || "(없음 — 과제 설명대로, 먼저 구성을 제안해 줘)"}\n`
         + (files.length ? "참고 자료 (이것만):\n" + files.map(x => "- " + x.p).join("\n") + "\n" : "참고 자료: 연결 없음 — 맞는 자료를 찾아 먼저 보여 줘\n")
@@ -1530,7 +1535,7 @@ async function quizCopy(key) {
   let files = MP && MP.key === key ? MP.links : null;
   if (!files) { try { files = (await getJSON("/api/links?key=" + encodeURIComponent(key))).links; } catch { files = []; } }
   files = files.filter(x => x.exists);
-  const text = `/quiz ${t && t.course ? t.course + " " : ""}${t ? t.title : key} — 이 자료로 퀴즈 만들어줘 (할 일 키 ${key})\n`
+  const text = `quiz 스킬로 ${t && t.course ? t.course + " " : ""}${t ? t.title : key} — 이 자료로 퀴즈 만들어줘 (할 일 키 ${key})\n`
     + (files.length ? "연결된 자료:\n" + files.map(x => "- " + x.p).join("\n") : "연결된 자료 없음 — study_system 의 이 강의 자료·노트에서 찾아서");
   if (!await copyText(text)) return;
   if (MP && MP.key === key) { MP.note = "🧩 퀴즈 요청을 복사했습니다 — AI 채팅에 붙여 넣으세요"; mpDraw(); }
@@ -1689,6 +1694,7 @@ document.addEventListener("click", async e => {
     return;
   }
   const act = b.dataset.act, key = b.dataset.key, t = findTask(key);
+  if (act === "jobcancel") { await post("job/cancel", { id: +b.dataset.id }); await load(); return; }
   if (b.hasAttribute("data-vanish")) { const line = b.closest(".cline"); if (line) line.remove(); }
   // 자료 창·보고서 창 안의 동작 (시트를 닫지 않음)
   if (await panelAct(act, b, key)) return;

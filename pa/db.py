@@ -61,7 +61,8 @@ CREATE TABLE IF NOT EXISTS jobs (               -- 에이전트 작업 (보고�
   step TEXT NOT NULL DEFAULT '',
   result TEXT,                                  -- 결과 파일 경로
   error TEXT,
-  claude INTEGER NOT NULL DEFAULT 0,            -- Claude(구독) 호출 횟수
+  ai_calls INTEGER NOT NULL DEFAULT 0,
+  ai_backend TEXT NOT NULL DEFAULT 'codex',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -96,11 +97,19 @@ FIELDS = ("kind", "course", "title", "due", "earliest", "slot_end", "minutes", "
 
 def connect():
     PATH.parent.mkdir(exist_ok=True)
-    conn = sqlite3.connect(PATH)
+    conn = sqlite3.connect(PATH, timeout=30)
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
     if "slot_end" not in {r[1] for r in conn.execute("PRAGMA table_info(tasks)")}:  # 예전 DB
         conn.execute("ALTER TABLE tasks ADD COLUMN slot_end TEXT")
+    columns = {r[1] for r in conn.execute("PRAGMA table_info(jobs)")}
+    if "ai_calls" not in columns:
+        conn.execute("ALTER TABLE jobs ADD COLUMN ai_calls INTEGER NOT NULL DEFAULT 0")
+        if "claude" in columns:
+            conn.execute("UPDATE jobs SET ai_calls = claude")
+    if "ai_backend" not in columns:
+        conn.execute("ALTER TABLE jobs ADD COLUMN ai_backend TEXT NOT NULL DEFAULT 'unknown'")
+    conn.commit()
     return conn
 
 

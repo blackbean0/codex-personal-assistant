@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 
 
-from pa import db, materials
+from pa import db, materials, settings
 from pa.config import ROOT, load_yaml
 from pa.model import now
 
@@ -34,7 +34,7 @@ _index = {"at": 0.0, "files": None}
 def cfg():
     c = load_yaml("materials")
     for r in c["roots"]:
-        r["path"] = Path(os.path.expanduser(r["path"])).resolve()
+        r["path"] = settings.material_path(r["path"])
         r["ext"] = {"." + e.lower().lstrip(".") for e in r["ext"]}
     c["downloads"]["ext"] = {"." + e.lower().lstrip(".") for e in c["downloads"]["ext"]}
     return c

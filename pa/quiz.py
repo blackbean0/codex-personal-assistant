@@ -13,7 +13,7 @@ from datetime import datetime, time, timedelta
 from pathlib import Path
 
 
-from pa import db, materials
+from pa import db, materials, settings
 from pa.config import ROOT, load_yaml
 from pa.model import KST, now, parse_dt
 
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS quiz_log (qid TEXT NOT NULL, correct INTEGER NOT NULL
 
 def cfg():
     c = load_yaml("courses").get("quiz") or {}
-    return {"dir": Path(os.path.expanduser(c.get("dir", "~/quiz_system_project/pharmacy"))),
+    return {"dir": settings.project("quiz"),
             "url": c.get("url", "")}
 
 

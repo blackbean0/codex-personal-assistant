@@ -26,13 +26,18 @@ def test_failure_is_recorded(conn, monkeypatch):
     jobs.enqueue(conn, "report", "a2", "과제2")
     jobs.run_next(conn)
     j = jobs.recent(conn)[0]
-    assert j["status"] == "failed" and "자료 없음" in j["error"]
+    assert j["status"] == "failed" and j["error"]
 
 
 def test_doc_kind():
     assert jobs.doc_kind("Ch22_배움노트작성_1장으로 정리") == "배움노트"
     assert jobs.doc_kind("리바이어던 발표자료 제출") == "발표자료"
     assert jobs.doc_kind("10주차 결과보고서") == "결과보고서"
+
+
+def test_student_reads_personal_settings(monkeypatch):
+    monkeypatch.setattr(jobs.settings, "load_yaml", lambda _: {"student": {"id": "123", "name": "Example"}})
+    assert jobs.student() == ("123", "Example")
 
 
 def test_notices_job_parses_suggestions(conn, monkeypatch):

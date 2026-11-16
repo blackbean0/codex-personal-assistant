@@ -6,3 +6,5 @@ import pytest
 def _no_real_login(monkeypatch):
     from pa import browser
     monkeypatch.setattr(browser, "auto_login", lambda: False)
+    from pa import ai
+    monkeypatch.setattr(ai, "status", lambda auth=False: {"backend": "codex", "installed": True, "authenticated": True})

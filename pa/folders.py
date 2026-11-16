@@ -17,7 +17,7 @@ SKIP = {"node_modules", ".venv", "venv", "__pycache__", ".git", ".cache", ".loca
 def _home_short(p):
     home = str(Path.home())
     s = str(p)
-    return "~" + s[len(home):] if s == home or s.startswith(home + os.sep) else s
+    return "~" + s[len(home):].replace(os.sep, "/") if s == home or s.startswith(home + os.sep) else s
 
 
 def complete(text, limit=30):

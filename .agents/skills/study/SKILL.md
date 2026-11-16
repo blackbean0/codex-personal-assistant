@@ -3,5 +3,21 @@ name: study
 description: 강의를 들으며 공부하거나, 강의 내용 질문·기록·정리·자료 요약을 할 때 사용. "공부하자", "이거 무슨 뜻이야", "기록해줘", "강의 열어줘", "자료 요약해줘" 등.
 ---
 
-이 스킬의 본문은 `.claude/skills/study/SKILL.md` 다 (Claude Code 와 함께 쓰는 원본).
-그 파일을 읽고 단계를 그대로 따른다. Windows 에서는 `bin/pa` 를 `bin\pa.cmd` 로 쓴다.
+1. **`~/study_system/AGENTS.md` 를, 없으면 `~/study_system/CLAUDE.md` 를 읽고** 그 진행 방식과 기록 원칙을 그대로 따른다
+   (사용자의 말을 그대로 기록하고 다듬지 않는다. 검증한 작업 단위마다 본인 origin에 커밋·push한다).
+2. 과목명 → 폴더는 config/assistant.yaml 의 projects 와 config/profile.md 의 과목 대응표 (실제 규칙은 config/courses.yaml).
+3. 답에 쓰는 자료는 이 순서로 찾는다.
+   1. 그 강의에 연결된 자료: `bin\pa.cmd links <키>` (대시보드 📄 에서 사용자가 고른 것 + 강의 플랫폼의 같은 주차 자료 짝)
+   2. 만들어 둔 정리: `~/study_system/materials/<과목>/요약/<자료 이름>_요약.md`
+   3. `~/study_system/materials/<과목>/` 전체, 사용자의 노트 `~/study_system/notes/<과목>/`
+4. 강의를 열어 달라고 하면 `bin\pa.cmd lectures <과목>` 으로 목록을 보여 주고 `--open N` 으로 연다 (사용자가 요청할 때만).
+5. 강의를 다 들었다고 하면: 강의 플랫폼(LearningX)이 연결돼 있으면 다음 Canvas 확인 때 자동으로 완료된다.
+   로그인이 만료됐다는 ⚠️ 가 있으면 `bin\pa.cmd done <키>` 로 완료 처리한다. 출석·수강을 대신 채우지 않는다.
+6. 자료 요약을 부탁받으면 대시보드의 🤖 요약과 **같은 자리·같은 구성**으로 쓴다 — 그래야 대시보드에서 📝 로 열린다.
+   - 위치: `~/study_system/materials/<과목>/요약/<PDF 이름>_요약.md` (사용자의 노트 notes/ 와 섞지 않음)
+   - 구성: `# <이름> 요약` / 핵심 내용(자료 흐름대로) / 꼭 알아야 할 용어·식(표) / 시험에 나올 만한 포인트 / 헷갈리기 쉬운 것
+   - 자료에 없는 내용은 쓰지 않는다. 그림·구조식은 말로 설명하고 쪽수를 적는다. 해라체.
+   - materials/ 는 git 에 올리지 않는다.
+7. 단원이 끝나 퀴즈 얘기가 나오면 `quiz` 스킬.
+
+프로젝트 위치는 config/assistant.yaml 의 projects 를 따른다. 검증한 변경은 본인 origin에 커밋·push한다. 외부 배포는 별도 요청이 필요하다.

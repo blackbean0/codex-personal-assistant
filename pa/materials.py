@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 
 
-from pa import db, osutil
+from pa import db, osutil, settings
 from pa.config import ROOT, load_yaml
 
 SKIP = re.compile(r"^스크린샷|^Screenshot|\.(png|jpg|jpeg|gif)$", re.I)
@@ -22,7 +22,7 @@ DOC_EXT = {".pdf", ".ppt", ".pptx", ".doc", ".docx", ".hwp", ".hwpx", ".xlsx", "
 
 def _cfg():
     c = load_yaml("courses")
-    c["root"] = Path(os.path.expanduser(c["root"]))
+    c["root"] = settings.project("study")
     return c
 
 
@@ -37,7 +37,7 @@ def course_dirs(course_name):
 
 def allowed_roots():
     cfg = _cfg()
-    return [cfg["root"].resolve(), (Path.home() / "report").resolve()]
+    return [cfg["root"].resolve(), settings.project("report")]
 
 
 def clues(title):
