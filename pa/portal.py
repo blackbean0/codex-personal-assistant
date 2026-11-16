@@ -8,6 +8,7 @@ from datetime import date, datetime
 import yaml
 
 from pa.config import ROOT, load_timetable
+from pa.model import now
 
 URL = "https://portal.jejunu.ac.kr/classwork/management/timetable.htm"
 
@@ -73,10 +74,13 @@ def apply(rows, year, term):
     cfg["class_dates"] = lessons
     cfg["semester_start"] = min(x["date"] for x in lessons)
     cfg["semester_end"] = max(x["date"] for x in lessons)
-    cfg["portal_import"] = {"year": year, "term": term, "imported_at": datetime.now().isoformat(timespec="seconds"),
+    old_policy = cfg.get("portal_import") or {}
+    cfg["portal_import"] = {"year": year, "term": term, "imported_at": now().isoformat(timespec="seconds"),
                             "cancelled_slots_skipped": cancelled, "untimed_courses": untimed,
                             "refresh_on_full_sync": True,
                             "source": URL}
+    if old_policy.get("refresh_weekday") is not None:
+        cfg["portal_import"]["refresh_weekday"] = old_policy["refresh_weekday"]
     path.write_text(yaml.safe_dump(cfg, allow_unicode=True, sort_keys=False), encoding="utf-8")
     return len(lessons), len(untimed), cancelled
 
@@ -85,6 +89,14 @@ def refresh():
     cfg = load_timetable().get("portal_import") or {}
     if not cfg.get("refresh_on_full_sync"):
         return None
+    weekday = cfg.get("refresh_weekday")
+    if weekday is not None:
+        days = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+        if weekday not in days:
+            raise ValueError("포털 시간표 확인 요일 설정이 올바르지 않습니다")
+        current = now()
+        if current.weekday() != days.index(weekday) or str(cfg.get("imported_at", ""))[:10] == current.date().isoformat():
+            return None
     return apply(fetch(int(cfg["year"]), int(cfg["term"])), int(cfg["year"]), int(cfg["term"]))
 
 

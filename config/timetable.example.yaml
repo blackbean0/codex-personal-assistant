@@ -16,6 +16,8 @@ online_classes: []
 # 포털에서 날짜별 시간표를 가져오면 class_dates가 생성된다.
 # class_dates가 있으면 classes의 매주 반복 대신 실제 날짜만 사용하며 휴강은 제외한다.
 # 가져오기: bin\pa.cmd portal-timetable --year 2026 --term 20 --apply
+# 가져온 뒤 portal_import.refresh_weekday: sun 으로 설정하면 일요일에 한 번만 재조회한다.
+# 이 설정은 학교 시간표 조회에만 적용하며 Google Calendar 주기는 바꾸지 않는다.
 
 # 학습 계획 설정
 planner:
